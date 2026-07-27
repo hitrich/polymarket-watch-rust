@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a reproducible defect or unexpected failure
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private keys, real account data, or exploit details. Use the Security tab for vulnerabilities.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Provide minimal steps using paper mode and synthetic identifiers.
+      placeholder: |
+        1. Configure ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and Rust version
+      placeholder: macOS 15, rustc 1.xx.x
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      description: Remove credentials, wallet data, account data, and sensitive paths.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checklist
+      options:
+        - label: I reproduced this in paper mode or without a funded account.
+          required: true
+        - label: I removed secrets and private account data.
+          required: true
+        - label: This is not a privately reportable security vulnerability.
+          required: true

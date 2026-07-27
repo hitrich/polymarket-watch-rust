@@ -3,4 +3,5 @@
 /output/
 .DS_Store
 .env
+config.local.toml
 *.tmp

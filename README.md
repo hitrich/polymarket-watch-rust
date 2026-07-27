@@ -116,6 +116,13 @@ cargo build --offline --release
 See `architecture.md` for the complete safety model, protocol assumptions, and
 deliberate limitations.
 
+## Contributing
+
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), keep
+live credentials out of the repository, and run the quality gate before opening
+a pull request. Security-sensitive findings should follow
+[SECURITY.md](SECURITY.md).
+
 ## License
 
 Licensed under the [MIT License](LICENSE).
