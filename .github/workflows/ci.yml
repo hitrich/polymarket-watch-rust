@@ -1,0 +1,50 @@
+name: Rust CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+jobs:
+  quality:
+    name: Format, test, lint, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+
+      - name: Select stable Rust
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup component add rustfmt clippy
+
+      - name: Fetch locked dependencies
+        run: cargo fetch --locked
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run tests
+        run: cargo test --offline --locked --all-targets --all-features
+
+      - name: Run Clippy
+        run: cargo clippy --offline --locked --all-targets --all-features -- -D warnings
+
+      - name: Build release binary
+        run: cargo build --offline --locked --release
