@@ -1,0 +1,9 @@
+{
+  "type": "user",
+  "markets": ["condition-1"],
+  "auth": {
+    "apiKey": "<redacted>",
+    "secret": "<redacted>",
+    "passphrase": "<redacted>"
+  }
+}

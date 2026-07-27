@@ -1,0 +1,6 @@
+/target/
+/logs/
+/output/
+.DS_Store
+.env
+*.tmp

@@ -1,0 +1,74 @@
+mode = "paper"
+venue = "polymarket_international"
+
+clob_protocol = "v2"
+clob_host = "https://clob.polymarket.com"
+chain_id = 137
+collateral_asset = "pUSD"
+wallet_mode = "deposit_wallet"
+signature_type = "poly1271"
+funder_address = "0x1111111111111111111111111111111111111111"
+geoblock_url = "https://polymarket.com/api/geoblock"
+max_geoblock_age_ms = 60000
+
+max_book_age_ms = 250
+max_event_lag_ms = 500
+max_order_usdc = "10"
+max_market_exposure_usdc = "100"
+max_daily_loss_usdc = "50"
+max_slippage_ticks = 2
+max_market_impact_bps = 25
+min_top_book_size = "5"
+order_ttl_ms = 750
+
+max_new_orders_per_second = 3
+max_cancels_per_second = 5
+max_position_notional_usdc = "250"
+neg_risk_enabled = false
+
+asset_ids = [
+  "1234567890123456789012345678901234567890"
+]
+
+condition_ids = [
+  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+]
+
+watched_wallets = []
+# Declare every wallet controlled by this operator. The funder is mandatory and
+# controlled wallets may never appear in watched_wallets.
+controlled_wallets = ["0x1111111111111111111111111111111111111111"]
+wallet_scores = []
+external_symbols = ["BTC-USD"]
+
+# Production endpoints. WebSocket paths are managed by the official SDK.
+market_ws_endpoint = "wss://ws-subscriptions-clob.polymarket.com"
+user_ws_endpoint = "wss://ws-subscriptions-clob.polymarket.com"
+data_api_host = "https://data-api.polymarket.com"
+coinbase_ws_endpoint = "wss://advanced-trade-ws.coinbase.com"
+
+# Runtime, strategy, and paper-execution settings.
+journal_path = "logs/decisions.jsonl"
+live_risk_baseline_path = "logs/live-risk-baseline.json"
+compliance_latch_path = "logs/compliance-latch.json"
+max_clock_drift_ms = 2000
+heartbeat_interval_ms = 5000
+snapshot_interval_ms = 1000
+reconnect_min_ms = 250
+reconnect_max_ms = 30000
+wallet_poll_interval_ms = 5000
+wallet_signal_max_age_ms = 120000
+external_stale_ms = 2000
+strategy_size = "1"
+min_spread = "0.01"
+paper_starting_cash_usdc = "10000"
+paper_fee_bps = 0
+paper_fill_participation_bps = 2500
+enable_wallet_copying = false
+enable_external_signal = false
+
+# Live mode requires both values below plus every readiness/compliance gate.
+# Keep them disabled in source control. The confirmation phrase is intentionally
+# explicit and still does not bypass geoblock, reconciliation, or heartbeat gates.
+live_order_submission_enabled = false
+live_confirmation = ""

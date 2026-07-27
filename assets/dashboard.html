@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="command-token" content="__COMMAND_TOKEN__">
+  <title>Polymarket Runtime Console</title>
+  <link rel="stylesheet" href="/assets/dashboard.css">
+  <script src="/assets/dashboard.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to runtime content</a>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <div><strong>POLYMARKET</strong><span>runtime console</span></div>
+    </div>
+    <div class="top-status" aria-live="polite">
+      <span class="pill neutral" id="mode-pill">—</span>
+      <span class="pill neutral" id="phase-pill">CONNECTING</span>
+      <span class="timestamp">Runtime update <strong id="updated-at">waiting</strong></span>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="rail" aria-label="Runtime sections">
+      <a href="#overview" class="active">Overview</a>
+      <a href="#markets">Markets</a>
+      <a href="#portfolio">Portfolio</a>
+      <a href="#signals">Signals</a>
+      <a href="#journal">Journal</a>
+      <a href="#controls">Controls</a>
+      <div class="rail-foot">
+        <span>Local only</span>
+        <strong id="version-label">v—</strong>
+      </div>
+    </nav>
+
+    <main id="content">
+      <section class="hero" id="overview">
+        <div>
+          <p class="eyebrow">OPERATIONS / VERIFIED STATE</p>
+          <h1>Trading runtime</h1>
+          <p id="runtime-summary">Waiting for the first runtime snapshot. No market or account values are shown until observed.</p>
+        </div>
+        <div class="live-lock" id="live-lock">
+          <span>LIVE SUBMISSION</span>
+          <strong>LOCKED</strong>
+        </div>
+      </section>
+
+      <section class="notice warning" id="notice" role="status">
+        <span class="notice-dot" aria-hidden="true"></span>
+        <div><strong id="notice-title">Starting safely</strong><p id="notice-copy">Feeds, market metadata, and the journal are being verified.</p></div>
+      </section>
+
+      <section class="metric-grid" aria-label="Runtime summary">
+        <article><span>Equity</span><strong id="metric-equity">—</strong><small id="metric-equity-detail">No portfolio snapshot</small></article>
+        <article><span>Available cash</span><strong id="metric-cash">—</strong><small id="metric-cash-detail">No portfolio snapshot</small></article>
+        <article><span>Open orders</span><strong id="metric-orders">—</strong><small id="metric-orders-detail">No execution snapshot</small></article>
+        <article><span>Daily / session loss</span><strong id="metric-loss">—</strong><small id="metric-loss-detail">No portfolio snapshot</small></article>
+        <article><span>Submitted</span><strong id="metric-submitted">0</strong><small id="metric-rejected">0 rejected intents</small></article>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="panel span-2" aria-labelledby="health-title">
+          <header class="panel-head"><div><p class="eyebrow">CONNECTIVITY</p><h2 id="health-title">Feed health</h2></div></header>
+          <div class="feed-grid">
+            <article class="feed" data-feed="market_feed"><span class="status-dot"></span><div><strong>Polymarket market WS</strong><small>Waiting for connection</small></div><b>CONNECTING</b></article>
+            <article class="feed" data-feed="user_feed"><span class="status-dot"></span><div><strong>Polymarket user WS</strong><small>Disabled in paper mode</small></div><b>—</b></article>
+            <article class="feed" data-feed="external_feed"><span class="status-dot"></span><div><strong>Coinbase bridge</strong><small>Not reported</small></div><b>—</b></article>
+            <article class="feed" data-feed="wallet_feed"><span class="status-dot"></span><div><strong>Wallet observer</strong><small>Not reported</small></div><b>—</b></article>
+          </div>
+          <div class="compliance-row">
+            <div><span>Geographic eligibility</span><strong id="compliance-status">UNVERIFIED</strong></div>
+            <div><span>Detected location</span><strong id="compliance-location">Location unavailable</strong></div>
+            <div><span>Market catalog</span><strong id="catalog-status">VERIFYING</strong></div>
+            <div><span>Journal next sequence</span><strong id="journal-sequence">—</strong></div>
+          </div>
+        </section>
+
+        <section class="panel" id="portfolio" aria-labelledby="portfolio-title">
+          <header class="panel-head"><div><p class="eyebrow">ACCOUNTING</p><h2 id="portfolio-title">Paper portfolio</h2></div></header>
+          <dl class="accounting" id="accounting-list">
+            <div><dt>Starting cash</dt><dd>—</dd></div>
+            <div><dt>Cash</dt><dd>—</dd></div>
+            <div><dt>Market value</dt><dd>—</dd></div>
+            <div><dt>Realized P&amp;L</dt><dd>—</dd></div>
+            <div><dt>Unrealized P&amp;L</dt><dd>—</dd></div>
+            <div><dt>Fees</dt><dd>—</dd></div>
+          </dl>
+          <p class="empty-copy" id="positions-empty">No paper positions.</p>
+          <div class="position-list" id="position-list"></div>
+        </section>
+
+        <section class="panel span-2" id="markets" aria-labelledby="markets-title">
+          <header class="panel-head"><div><p class="eyebrow">AUTHORITATIVE BOOKS</p><h2 id="markets-title">Configured markets</h2></div><span class="count" id="market-count">0 markets</span></header>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Market</th><th>Asset</th><th>Bid</th><th>Ask</th><th>Spread</th><th>Last trade</th><th>Book age</th><th>Status</th></tr></thead>
+              <tbody id="market-body"><tr><td colspan="8" class="empty-cell">Waiting for verified market metadata and WebSocket snapshots.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="orders-title">
+          <header class="panel-head"><div><p class="eyebrow">EXECUTION</p><h2 id="orders-title">Open paper orders</h2></div></header>
+          <div class="table-wrap compact-table">
+            <table><thead><tr><th>ID</th><th>Side</th><th>Price</th><th>Remaining</th></tr></thead><tbody id="order-body"><tr><td colspan="4" class="empty-cell">No open orders.</td></tr></tbody></table>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="fills-title">
+          <header class="panel-head"><div><p class="eyebrow" id="fills-kicker">EXECUTION EVENTS</p><h2 id="fills-title">Recent fills</h2></div></header>
+          <div class="table-wrap compact-table">
+            <table><thead><tr><th>Time</th><th>Side</th><th>Price</th><th>Size</th></tr></thead><tbody id="fill-body"><tr><td colspan="4" class="empty-cell">No fills observed.</td></tr></tbody></table>
+          </div>
+        </section>
+
+        <section class="panel" id="signals" aria-labelledby="external-title">
+          <header class="panel-head"><div><p class="eyebrow">EXCHANGE BRIDGE</p><h2 id="external-title">External quotes</h2></div></header>
+          <div class="signal-list" id="quote-list"><p class="empty-copy">External signal feed is disabled or waiting.</p></div>
+        </section>
+
+        <section class="panel" aria-labelledby="wallet-title">
+          <header class="panel-head"><div><p class="eyebrow">PUBLIC ACTIVITY</p><h2 id="wallet-title">Wallet observations</h2></div></header>
+          <div class="signal-list" id="wallet-list"><p class="empty-copy">No new watched-wallet trades. Historical trades are never replayed.</p></div>
+        </section>
+
+        <section class="panel" aria-labelledby="latency-title">
+          <header class="panel-head"><div><p class="eyebrow">MEASURED / NOT ESTIMATED</p><h2 id="latency-title">Latency</h2></div></header>
+          <div class="latency-list" id="latency-list"><p class="empty-copy">No latency samples yet.</p></div>
+        </section>
+
+        <section class="panel span-2" id="journal" aria-labelledby="journal-title">
+          <header class="panel-head"><div><p class="eyebrow">RUNTIME EVENT STREAM</p><h2 id="journal-title">Recent events</h2></div><code id="journal-hash">hash unavailable</code></header>
+          <div class="table-wrap event-table">
+            <table><thead><tr><th>Time</th><th>Level</th><th>Component</th><th>Message</th></tr></thead><tbody id="event-body"><tr><td colspan="4" class="empty-cell">Waiting for runtime events.</td></tr></tbody></table>
+          </div>
+        </section>
+
+        <section class="panel controls" id="controls" aria-labelledby="controls-title">
+          <header class="panel-head"><div><p class="eyebrow">LOCAL CONTROL PLANE</p><h2 id="controls-title">Execution controls</h2></div></header>
+          <p>Commands are sent to the running engine and return only after execution or rejection. Live enablement is not available from this page.</p>
+          <div class="control-grid">
+            <button data-command="resume_paper" class="primary">Resume paper</button>
+            <button data-command="resume_live" class="danger">Resume live</button>
+            <button data-command="pause">Pause</button>
+            <button data-command="cancel_stale">Cancel stale</button>
+            <button data-command="cancel_all">Cancel all</button>
+            <button data-command="reduce_risk">Reduce risk</button>
+            <button data-command="flatten_paper" class="danger">Flatten paper</button>
+            <button data-command="shutdown" class="danger">Shut down runtime</button>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="readiness-title">
+          <header class="panel-head"><div><p class="eyebrow">FAIL-CLOSED</p><h2 id="readiness-title">Launch readiness</h2></div></header>
+          <div class="readiness-list" id="readiness-list"><p class="empty-copy">Waiting for startup report.</p></div>
+          <details><summary>Live lock reasons</summary><ul id="lock-reasons"><li>Runtime startup report unavailable.</li></ul></details>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
