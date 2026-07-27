@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a focused improvement
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or developer problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the smallest useful solution.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and compliance impact
+      description: Explain effects on live execution, accounting, credentials, geographic controls, or prohibited conduct.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you evaluate?
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This proposal does not weaken fail-closed safeguards.
+          required: true
+        - label: This proposal does not involve prohibited conduct.
+          required: true

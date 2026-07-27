@@ -116,6 +116,99 @@ cargo build --offline --release
 See `architecture.md` for the complete safety model, protocol assumptions, and
 deliberate limitations.
 
+## Contributing
+
+Contributions are welcome, from focused documentation fixes through tested
+protocol and risk-control changes. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full policy and use this section to
+find the right part of the codebase.
+
+### Contributor quick start
+
+Install a stable Rust toolchain, then prepare a reproducible local checkout:
+
+```sh
+git clone https://github.com/hitrich/polymarket-watch-rust.git
+cd polymarket-watch-rust
+cargo fetch --locked
+cargo test --offline --locked --all-targets --all-features
+```
+
+Copy the example configuration only if you need to exercise the runtime:
+
+```sh
+cp config.example.toml config.local.toml
+```
+
+`config.local.toml` is ignored by Git. Its market identifiers are placeholders
+until you replace them with a real binary market pair. Develop and reproduce
+changes in paper mode; a funded account is never required for a contribution.
+
+### Where to make changes
+
+| Area | Primary files | Context |
+| --- | --- | --- |
+| Runtime orchestration | `src/engine.rs`, `src/runtime.rs`, `src/state.rs` | Ordered event handling, commands, snapshots, and lifecycle transitions |
+| Market data | `src/market_ws.rs`, `src/book.rs`, `src/discovery.rs` | WebSocket continuity, authoritative books, and market metadata |
+| Orders and account state | `src/execution.rs`, `src/user_ws.rs`, `src/reconcile.rs`, `src/matching_engine.rs` | Submission, authenticated updates, remote recovery, and order identity |
+| Safety and compliance | `src/risk.rs`, `src/readiness.rs`, `src/compliance.rs`, `src/heartbeat.rs`, `src/secrets.rs` | Pre-trade limits, live gates, geographic checks, health, and secret presence |
+| Accounting and persistence | `src/fixed.rs`, `src/journal.rs`, `src/paper.rs` | Exact arithmetic, tamper-evident state, and paper fills |
+| Signals | `src/signal.rs`, `src/behavior.rs`, `src/external_feeds.rs`, `src/wallet_watch.rs` | Strategy inputs, behavioral limits, external quotes, and wallet policy |
+| Operator console | `src/gui.rs`, `assets/` | Loopback HTTP controls, status rendering, and dashboard assets |
+| Protocol fixtures and docs | `tests/`, `fixtures/`, `architecture.md` | Wire-format examples, integration boundaries, and safety rationale |
+
+Most changes are easier to review when they begin in the narrowest responsible
+module. Changes to `engine.rs`, live submission, reconciliation, or journal
+replay should explain why a smaller boundary is insufficient.
+
+### Safety expectations
+
+Contributors should preserve these project-wide invariants:
+
+- malformed, stale, partial, or ambiguous external state fails closed;
+- prices, sizes, balances, and fees use checked fixed-point arithmetic;
+- live orders cannot bypass readiness, compliance, reconciliation, or risk
+  gates;
+- account-changing transitions are durable before dependent behavior unlocks;
+- tests use synthetic identifiers and redacted credentials;
+- private keys, API credentials, real account snapshots, and runtime journals
+  never enter commits, issues, logs, or pull requests.
+
+If a change affects protocol assumptions, configuration, live execution,
+accounting, or recovery behavior, update `architecture.md` with the reasoning
+and add tests for both the success and rejection paths.
+
+### Good first contributions
+
+Approachable starting points include:
+
+- documentation corrections and clearer configuration examples;
+- additional fixtures for malformed, duplicated, stale, or out-of-order
+  messages;
+- focused unit tests for existing rejection and recovery paths;
+- dashboard accessibility and observability improvements that do not expose
+  secrets;
+- small refactors that clarify a module boundary without changing live
+  behavior.
+
+Discuss larger protocol integrations or live-execution changes in an issue
+before implementation so reviewers can agree on the safety boundary.
+
+### Pull request workflow
+
+1. Search existing issues and pull requests, then create a focused branch from
+   `main`.
+2. Add or update tests and document user-visible or protocol-level changes.
+3. Run the complete [quality gate](#quality-gate).
+4. Open a pull request using the repository template and describe safety,
+   compatibility, and validation impact.
+5. Keep the branch current with `main`, address review threads, and wait for
+   the required `Format, test, lint, and build` check to pass.
+
+The protected `main` branch rejects direct updates, force-pushes, and deletion.
+Security-sensitive findings should be reported privately according to
+[SECURITY.md](SECURITY.md), not through a public issue.
+
 ## License
 
 Licensed under the [MIT License](LICENSE).
