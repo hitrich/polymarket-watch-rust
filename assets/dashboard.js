@@ -3,25 +3,26 @@
 
   const token = document.querySelector('meta[name="command-token"]')?.content || '';
   const byId = (id) => document.getElementById(id);
-  const money = (value) => value == null ? '—' : `$${formatNumber(value, 2)}`;
-  const number = (value, digits = 3) => value == null ? '—' : formatNumber(value, digits);
+  const missing = '--';
+  const money = (value) => value == null ? missing : `$${formatNumber(value, 2)}`;
+  const number = (value, digits = 3) => value == null ? missing : formatNumber(value, digits);
   const formatNumber = (value, digits) => {
     const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return '—';
+    if (!Number.isFinite(parsed)) return missing;
     return new Intl.NumberFormat(undefined, {
       minimumFractionDigits: 0,
       maximumFractionDigits: digits,
     }).format(parsed);
   };
   const short = (value, leading = 7, trailing = 5) => {
-    if (!value) return '—';
+    if (!value) return missing;
     const text = String(value);
     return text.length <= leading + trailing + 1
       ? text
       : `${text.slice(0, leading)}…${text.slice(-trailing)}`;
   };
   const time = (value) => {
-    if (!Number.isFinite(Number(value)) || Number(value) <= 0) return '—';
+    if (!Number.isFinite(Number(value)) || Number(value) <= 0) return missing;
     return new Date(Number(value)).toLocaleTimeString([], {
       hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3,
     });
@@ -66,7 +67,7 @@
 
   function renderMarkets(runtime) {
     const markets = Object.entries(runtime.markets || {});
-    byId('market-count').textContent = `${markets.length} market${markets.length === 1 ? '' : 's'}`;
+    byId('market-count').textContent = `${markets.length} MARKET${markets.length === 1 ? '' : 'S'}`;
     const rows = markets.map(([assetId, view]) => {
       const book = view.book || {};
       const row = document.createElement('tr');
@@ -85,7 +86,7 @@
         cell(short(assetId, 9, 6), 'mono'),
         cell(number(book.best_bid, 4), 'numeric'),
         cell(number(book.best_ask, 4), 'numeric'),
-        cell(spread == null ? '—' : number(spread, 4), 'numeric'),
+        cell(spread == null ? missing : number(spread, 4), 'numeric'),
         cell(number(book.last_trade_price, 4), 'numeric'),
         cell(age(book.local_received_at_ms)),
         cell(status, book.tradeable ? 'text-ok' : 'text-warn'),
@@ -108,8 +109,8 @@
       ['Unrealized P&L', money(portfolio.unrealized_pnl_usdc)],
       ['Fees', money(portfolio.fees_paid_usdc)],
     ] : [
-      ['Starting cash', '—'], ['Cash', '—'], ['Market value', '—'],
-      ['Realized P&L', '—'], ['Unrealized P&L', '—'], ['Fees', '—'],
+      ['Starting cash', missing], ['Cash', missing], ['Market value', missing],
+      ['Realized P&L', missing], ['Unrealized P&L', missing], ['Fees', missing],
     ];
     accounting.replaceChildren(...values.map(([label, value]) => {
       const row = document.createElement('div');
@@ -121,23 +122,23 @@
       return row;
     }));
 
-    byId('metric-equity').textContent = portfolio ? money(portfolio.equity_usdc) : '—';
+    byId('metric-equity').textContent = portfolio ? money(portfolio.equity_usdc) : missing;
     byId('metric-equity-detail').textContent = portfolio
       ? `${money(portfolio.market_value_usdc)} marked value`
       : 'No portfolio snapshot';
-    byId('metric-cash').textContent = portfolio ? money(portfolio.available_cash_usdc) : '—';
+    byId('metric-cash').textContent = portfolio ? money(portfolio.available_cash_usdc) : missing;
     byId('metric-cash-detail').textContent = portfolio
       ? `${money(portfolio.cash_usdc)} total cash`
       : 'No portfolio snapshot';
     const orders = portfolio?.open_orders || [];
-    byId('metric-orders').textContent = portfolio ? String(orders.length) : '—';
+    byId('metric-orders').textContent = portfolio ? String(orders.length) : missing;
     byId('metric-orders-detail').textContent = portfolio
       ? `${orders.length} resting paper order${orders.length === 1 ? '' : 's'}`
       : 'No execution snapshot';
     const loss = portfolio
       ? Math.max(0, Number(portfolio.starting_cash_usdc) - Number(portfolio.equity_usdc))
       : null;
-    byId('metric-loss').textContent = loss == null ? '—' : money(loss);
+    byId('metric-loss').textContent = loss == null ? missing : money(loss);
     byId('metric-loss-detail').textContent = portfolio
       ? 'Measured from paper starting equity'
       : 'No portfolio snapshot';
@@ -162,7 +163,7 @@
       const row = document.createElement('tr');
       row.append(
         cell(short(order.state?.client_order_id, 10, 4), 'mono'),
-        cell(String(order.state?.intent?.side || '—').toUpperCase()),
+        cell(String(order.state?.intent?.side || missing).toUpperCase()),
         cell(number(order.state?.intent?.limit_price, 4), 'numeric'),
         cell(number(order.remaining_size, 3), 'numeric'),
       );
@@ -227,7 +228,7 @@
       const row = document.createElement('tr');
       row.append(
         cell(short(order.asset_id, 9, 5), 'mono'),
-        cell(String(order.side || '—').toUpperCase()),
+        cell(String(order.side || missing).toUpperCase()),
         cell(number(order.price, 4), 'numeric'),
         cell(number(order.size, 3), 'numeric'),
       );
@@ -241,7 +242,7 @@
       const row = document.createElement('tr');
       row.append(
         cell(time(fill.filled_at_ms)),
-        cell(String(fill.side || '—').toUpperCase()),
+        cell(String(fill.side || missing).toUpperCase()),
         cell(number(fill.price, 4), 'numeric'),
         cell(number(fill.size, 3), 'numeric'),
       );
@@ -343,6 +344,12 @@
 
   function renderReadiness(startup) {
     const readiness = startup.readiness || [];
+    const passed = readiness.filter((gate) => gate.passed).length;
+    const locked = readiness.length - passed;
+    byId('gates-summary').textContent = `${passed} / ${readiness.length}`;
+    byId('readiness-count').textContent = readiness.length
+      ? `${locked} LOCKED`
+      : 'VERIFYING';
     const list = byId('readiness-list');
     list.replaceChildren(...readiness.map((gate) => {
       const row = document.createElement('article');
@@ -379,28 +386,36 @@
     const phase = String(runtime.phase || 'starting').toUpperCase();
     byId('mode-pill').textContent = mode;
     byId('phase-pill').textContent = phase;
-    byId('phase-pill').className = `pill phase-${runtime.phase || 'starting'}`;
+    byId('phase-pill').className = `status-chip phase-${runtime.phase || 'starting'}`;
     byId('updated-at').textContent = `${time(runtime.updated_at_ms)} · ${age(runtime.updated_at_ms)}`;
-    byId('version-label').textContent = `v${startup.version || '—'}`;
+    byId('version-label').textContent = `v${startup.version || missing}`;
     byId('runtime-summary').textContent = runtime.paused
       ? 'The strategy is paused. Data ingestion, accounting, and safety verification continue.'
       : `The ${mode === 'LIVE' ? 'live' : 'paper'} strategy is active. Every intent still passes freshness, risk, compliance, rate, and journal gates.`;
-    byId('live-lock').querySelector('strong').textContent = runtime.live_submission_enabled ? 'ENABLED' : 'LOCKED';
-    byId('live-lock').dataset.enabled = String(Boolean(runtime.live_submission_enabled));
+    const liveLock = byId('live-lock');
+    liveLock.querySelector('strong').textContent = runtime.live_submission_enabled ? 'ENABLED' : 'LOCKED';
+    liveLock.querySelector('i').className = runtime.live_submission_enabled
+      ? 'ti ti-circle-check'
+      : 'ti ti-lock';
+    liveLock.dataset.enabled = String(Boolean(runtime.live_submission_enabled));
 
     const notice = byId('notice');
+    const noticeIcon = byId('notice-icon');
     if (runtime.phase === 'running') {
       notice.className = 'notice success';
+      noticeIcon.className = 'ti ti-circle-check';
       byId('notice-title').textContent = `${mode === 'LIVE' ? 'Live' : 'Paper'} runtime active`;
       byId('notice-copy').textContent = mode === 'LIVE'
         ? 'Authenticated account state, verified books, and all readiness gates are active.'
         : 'Verified books and all configured gates are driving the simulation.';
     } else if (runtime.phase === 'paused') {
       notice.className = 'notice neutral';
+      noticeIcon.className = 'ti ti-player-pause';
       byId('notice-title').textContent = 'Strategy paused';
       byId('notice-copy').textContent = 'Feeds and accounting remain active; no new strategy orders are created.';
     } else {
       notice.className = 'notice warning';
+      noticeIcon.className = 'ti ti-alert-triangle';
       byId('notice-title').textContent = runtime.phase === 'degraded' ? 'Runtime degraded' : 'Starting safely';
       byId('notice-copy').textContent = runtime.phase === 'degraded'
         ? 'One or more authoritative inputs are unavailable. New orders remain blocked by downstream gates.'
@@ -414,7 +429,7 @@
     byId('compliance-status').textContent = String(runtime.compliance_status || 'unverified').toUpperCase();
     byId('compliance-location').textContent = runtime.compliance_location || 'Location unavailable';
     byId('catalog-status').textContent = runtime.catalog_ready ? 'VERIFIED' : 'VERIFYING';
-    byId('journal-sequence').textContent = String(runtime.journal_next_sequence ?? '—');
+    byId('journal-sequence').textContent = String(runtime.journal_next_sequence ?? missing);
     byId('journal-hash').textContent = runtime.journal_last_hash
       ? `BLAKE3 ${short(runtime.journal_last_hash, 12, 8)}`
       : 'hash unavailable';
@@ -462,11 +477,15 @@
       });
       if (!response.ok) throw new Error(`status request failed (${response.status})`);
       render(await response.json());
+      document.body.dataset.loading = 'false';
       document.body.dataset.connected = 'true';
+      byId('connection-label').textContent = 'ONLINE';
     } catch (error) {
+      document.body.dataset.loading = 'false';
       document.body.dataset.connected = 'false';
+      byId('connection-label').textContent = 'OFFLINE';
       byId('phase-pill').textContent = 'STATUS UNAVAILABLE';
-      byId('phase-pill').className = 'pill phase-degraded';
+      byId('phase-pill').className = 'status-chip phase-degraded';
       toast(error.message || 'Runtime status unavailable', 'error');
     }
   }
@@ -484,8 +503,9 @@
       if (action === 'shutdown') {
         clearInterval(statusPoll);
         document.body.dataset.connected = 'false';
+        byId('connection-label').textContent = 'STOPPING';
         byId('phase-pill').textContent = 'SHUTTING DOWN';
-        byId('phase-pill').className = 'pill phase-paused';
+        byId('phase-pill').className = 'status-chip phase-shutting_down';
         byId('runtime-summary').textContent = 'Graceful shutdown accepted. Open orders are being cancelled and durable state is being flushed.';
         document.querySelectorAll('[data-command]').forEach((control) => {
           control.disabled = true;
@@ -505,6 +525,49 @@
   document.querySelectorAll('[data-command]').forEach((button) => {
     button.addEventListener('click', () => command(button.dataset.command, button));
   });
+
+  const clockFormat = new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+  const utcClockFormat = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'UTC',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+  const refreshClocks = () => {
+    const now = new Date();
+    byId('clock-local').textContent = clockFormat.format(now);
+    byId('clock-utc').textContent = utcClockFormat.format(now);
+  };
+
+  const navLinks = Array.from(document.querySelectorAll('.rail a[href^="#"]'));
+  const setActiveSection = (id) => {
+    navLinks.forEach((link) => {
+      const active = link.getAttribute('href') === `#${id}`;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
+  if ('IntersectionObserver' in window) {
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const visible = entries.find((entry) => entry.isIntersecting);
+      if (visible) setActiveSection(visible.target.id);
+    }, { rootMargin: '-18% 0px -70% 0px' });
+    navLinks.forEach((link) => {
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) sectionObserver.observe(target);
+    });
+  }
+
+  byId('runtime-origin').textContent = window.location.host;
+  refreshClocks();
+  setInterval(refreshClocks, 1000);
   refresh();
   const statusPoll = setInterval(refresh, 1000);
 })();

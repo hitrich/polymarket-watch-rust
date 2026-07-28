@@ -209,6 +209,27 @@ fn handle_connection(
                 include_str!("../assets/dashboard.js"),
             ),
         ),
+        ("GET", "/assets/tabler-icons.css") => write_response(
+            &mut stream,
+            &http_ok(
+                "text/css; charset=utf-8",
+                include_str!("../assets/tabler-icons.css"),
+            ),
+        ),
+        ("GET", "/assets/fonts/tabler-icons.woff2") => write_embedded_asset(
+            &mut stream,
+            "font/woff2",
+            include_bytes!("../assets/fonts/tabler-icons.woff2"),
+        ),
+        ("GET", "/assets/world-network-map.jpg") => write_embedded_asset(
+            &mut stream,
+            "image/jpeg",
+            include_bytes!("../assets/world-network-map.jpg"),
+        ),
+        ("GET", "/favicon.ico") => write_response(
+            &mut stream,
+            &http_response(204, "No Content", "image/x-icon", ""),
+        ),
         ("GET", "/api/status") => {
             let supplied_token = header_value(header_block, "x-control-token");
             let expected_token = gui
@@ -562,6 +583,24 @@ fn write_response(stream: &mut TcpStream, response: &str) -> Result<()> {
     Ok(())
 }
 
+fn write_embedded_asset(stream: &mut TcpStream, content_type: &str, body: &[u8]) -> Result<()> {
+    // These embedded assets exceed common socket send buffers. A longer loopback-only
+    // write window prevents otherwise healthy font and image responses from truncating.
+    stream.set_write_timeout(Some(Duration::from_secs(10)))?;
+    write_binary_response(stream, content_type, body)
+}
+
+fn write_binary_response(stream: &mut impl Write, content_type: &str, body: &[u8]) -> Result<()> {
+    let headers = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nCross-Origin-Resource-Policy: same-origin\r\n\r\n",
+        body.len()
+    );
+    stream.write_all(headers.as_bytes())?;
+    stream.write_all(body)?;
+    stream.flush()?;
+    Ok(())
+}
+
 fn http_ok(content_type: &str, body: &str) -> String {
     http_response(200, "OK", content_type, body)
 }
@@ -654,5 +693,22 @@ mod tests {
         assert_ne!(first, second);
         assert!(constant_time_eq(first.as_bytes(), first.as_bytes()));
         assert!(!constant_time_eq(first.as_bytes(), second.as_bytes()));
+    }
+
+    #[test]
+    fn binary_asset_response_has_exact_length_and_body() {
+        let body = [0_u8, 1, 2, 255];
+        let mut response = Vec::new();
+        write_binary_response(&mut response, "application/octet-stream", &body).unwrap();
+        let separator = b"\r\n\r\n";
+        let split = response
+            .windows(separator.len())
+            .position(|window| window == separator)
+            .unwrap();
+        let headers = std::str::from_utf8(&response[..split]).unwrap();
+        assert!(headers.contains("HTTP/1.1 200 OK"));
+        assert!(headers.contains("Content-Length: 4"));
+        assert!(headers.contains("X-Content-Type-Options: nosniff"));
+        assert_eq!(&response[split + separator.len()..], &body);
     }
 }
